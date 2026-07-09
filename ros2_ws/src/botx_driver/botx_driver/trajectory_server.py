@@ -119,7 +119,15 @@ class TrajectoryServer(Node):
             self.homing = False
             self.jog = {}
             for i, name in enumerate(msg.joint_names):
-                if name in self.cal and i < len(msg.velocities):
+                if name not in self.cal:
+                    continue
+                # one-shot position nudge (keyboard TUI sends these:
+                # crisp per-keypress steps that stop the instant keys stop)
+                if i < len(msg.displacements) and name not in self.traj_owned:
+                    self.pos[name] = self.clamp(
+                        name, self.pos[name] + msg.displacements[i])
+                # continuous velocity jog (gamepad sends these)
+                if i < len(msg.velocities):
                     self.jog[name] = msg.velocities[i]
             self.jog_stamp = time.monotonic()
 

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>botx_tui</name>
+  <version>1.0.0</version>
+  <description>
+    Terminal (curses) keyboard controller for the botX arm: per-joint
+    jogging with live gauges, driven through the same /joint_jog interface
+    as the gamepad. Zero extra dependencies - pure stdlib curses.
+  </description>
+  <maintainer email="shawonparvez@outlook.com">Monjurul Hasan Sohan</maintainer>
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>control_msgs</depend>
+  <depend>std_srvs</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

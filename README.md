@@ -29,6 +29,7 @@ explaining every layer.
 | `ros2_ws/src/botx_moveit_config/` | MoveIt 2 configuration (SRDF, IK, controllers) + demo launch |
 | `ros2_ws/src/botx_driver/` | Trajectory action servers + serial bridge (auto-simulates without hardware) |
 | `ros2_ws/src/botx_teleop/` | Fantech gamepad teleop (`joy` → `JointJog`) |
+| `ros2_ws/src/botx_tui/` | Terminal keyboard controller (curses TUI with live joint gauges) |
 | `docs/` | The class: arms & DOF → hardware → firmware → URDF → ROS 2 → MoveIt 2 → teleop |
 
 ## Quickstart
@@ -52,6 +53,9 @@ ros2 launch botx_moveit_config demo.launch.py
 
 # 3. gamepad teleop (second terminal, alongside 2)
 ros2 launch botx_teleop teleop.launch.py
+
+# 4. terminal keyboard controller (second terminal, alongside 2)
+ros2 run botx_tui arm_tui
 ```
 
 Flash the firmware once (from the host, ESP32 on USB):
@@ -71,6 +75,7 @@ cd firmware && pio run -t upload
 7. [Gamepad teleoperation](docs/07-gamepad-teleop.md)
 8. [Class demo script (lesson plan)](docs/08-class-demo-script.md)
 9. [Troubleshooting](docs/09-troubleshooting.md)
+10. [Terminal keyboard controller (TUI)](docs/10-terminal-controller.md)
 
 ## License
 
