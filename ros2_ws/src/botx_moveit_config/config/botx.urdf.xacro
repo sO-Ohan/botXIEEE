@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<!-- Thin wrapper so MoveItConfigsBuilder finds the robot model in this package
+     while the single source of truth stays in botx_description. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="botx_arm">
+  <xacro:include filename="$(find botx_description)/urdf/botx_arm.urdf.xacro"/>
+</robot>

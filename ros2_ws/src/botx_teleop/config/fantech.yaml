@@ -1,0 +1,32 @@
+# Gamepad -> joint mapping for the Fantech USB controller.
+#
+# Most Fantech pads (GP11 "Shooter" family) enumerate as a standard
+# XInput-style gamepad on Linux, giving the axis/button numbering below.
+# If yours differs, run:   ros2 topic echo /joy
+# wiggle one stick at a time, note which index changes, and edit here.
+#
+#   axes:    0 = left stick X    1 = left stick Y
+#            3 = right stick X   4 = right stick Y
+#            2 = LT              5 = RT
+#            6 = D-pad X         7 = D-pad Y
+#   buttons: 0=A 1=B 2=X 3=Y 4=LB 5=RB 6=Back 7=Start
+#
+# scale is the joint velocity at full stick deflection
+# (rad/s for arm joints). Flip its sign to invert a control.
+
+deadzone: 0.15
+publish_rate: 25.0
+
+axes:
+  base_yaw_joint:       {axis: 0, scale: -0.8}   # left stick left/right
+  shoulder_pitch_joint: {axis: 1, scale:  0.8}   # left stick up/down
+  elbow_pitch_joint:    {axis: 4, scale:  0.8}   # right stick up/down
+  wrist_roll_joint:     {axis: 3, scale: -1.2}   # right stick left/right
+  wrist_pitch_joint:    {axis: 7, scale:  0.8}   # D-pad up/down
+
+buttons:
+  gripper_open:  5      # RB
+  gripper_close: 4      # LB
+  go_home:       7      # Start
+
+gripper_speed: 0.02     # m/s of finger travel while a bumper is held

@@ -1,0 +1,75 @@
+# Maps URDF joint positions -> servo pulse widths (microseconds).
+#
+#   pulse_us = center_us + (position - center_pos) * us_per_unit
+#
+# position is in URDF units: radians for the 5 revolute joints,
+# meters for the prismatic gripper_joint.
+#
+# CALIBRATION PROCEDURE (per joint):
+#  1. With the demo running, jog only this joint positive (gamepad or RViz).
+#  2. If the real joint moves opposite to RViz, flip the sign of us_per_unit.
+#  3. If the real joint is offset from RViz at position 0, adjust center_us.
+#  4. Tighten min_us/max_us so the servo never slams into a mechanical stop.
+#
+# 636.62 us/rad  ==  (2000 us span) / (pi rad span)  for a 500-2500us, 180deg servo.
+
+joints:
+  base_yaw_joint:        # PCA9685 channel 0
+    channel: 0
+    center_us: 1500
+    center_pos: 0.0
+    us_per_unit: 636.62
+    min_us: 600
+    max_us: 2400
+    min_pos: -1.5708
+    max_pos: 1.5708
+
+  shoulder_pitch_joint:  # channel 1 - highest load joint
+    channel: 1
+    center_us: 1500
+    center_pos: 0.0
+    us_per_unit: -636.62   # flipped: servo horn faces the opposite way
+    min_us: 600
+    max_us: 2400
+    min_pos: -1.5708
+    max_pos: 1.5708
+
+  elbow_pitch_joint:     # channel 2
+    channel: 2
+    center_us: 1500
+    center_pos: 0.0
+    us_per_unit: 636.62
+    min_us: 600
+    max_us: 2400
+    min_pos: -1.5708
+    max_pos: 1.5708
+
+  wrist_pitch_joint:     # channel 3
+    channel: 3
+    center_us: 1500
+    center_pos: 0.0
+    us_per_unit: -636.62
+    min_us: 600
+    max_us: 2400
+    min_pos: -1.5708
+    max_pos: 1.5708
+
+  wrist_roll_joint:      # channel 4
+    channel: 4
+    center_us: 1500
+    center_pos: 0.0
+    us_per_unit: 636.62
+    min_us: 600
+    max_us: 2400
+    min_pos: -1.5708
+    max_pos: 1.5708
+
+  gripper_joint:         # channel 5 - prismatic, meters
+    channel: 5
+    center_us: 1500
+    center_pos: 0.01125   # half of the 22.5 mm travel
+    us_per_unit: 44444.0  # ~1000us of pulse over 22.5mm of finger travel
+    min_us: 1000
+    max_us: 2000
+    min_pos: 0.0
+    max_pos: 0.0225

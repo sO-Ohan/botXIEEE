@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>botx_driver</name>
+  <version>1.0.0</version>
+  <description>
+    Hardware driver for the botX arm: FollowJointTrajectory action servers
+    (used by MoveIt2), JointJog teleop input, joint_states publishing, and
+    the USB-serial bridge to the ESP32 + PCA9685 servo controller.
+    Runs in simulation mode automatically when no serial port is available.
+  </description>
+  <maintainer email="shawonparvez@outlook.com">Monjurul Hasan Sohan</maintainer>
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>control_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>python3-serial</depend>
+  <depend>python3-yaml</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

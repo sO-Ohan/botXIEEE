@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SRDF = Semantic Robot Description Format.
+  The URDF says what the robot IS (links, joints, geometry);
+  the SRDF tells MoveIt how to USE it (planning groups, named poses,
+  end effector, and which collision checks to skip).
+-->
+<robot name="botx_arm">
+
+  <!-- The 5 revolute joints form the "arm" planning group (base -> tool0). -->
+  <group name="arm">
+    <chain base_link="base_link" tip_link="tool0"/>
+  </group>
+
+  <!-- The claw is its own group; only gripper_joint is actuated,
+       gripper_mirror_joint follows via URDF <mimic>. -->
+  <group name="gripper">
+    <joint name="gripper_joint"/>
+  </group>
+
+  <!-- Named poses usable from RViz "Goal State" dropdown and code. -->
+  <group_state name="home" group="arm">
+    <joint name="base_yaw_joint" value="0"/>
+    <joint name="shoulder_pitch_joint" value="0"/>
+    <joint name="elbow_pitch_joint" value="0"/>
+    <joint name="wrist_pitch_joint" value="0"/>
+    <joint name="wrist_roll_joint" value="0"/>
+  </group_state>
+
+  <group_state name="ready" group="arm">
+    <joint name="base_yaw_joint" value="0"/>
+    <joint name="shoulder_pitch_joint" value="0.6"/>
+    <joint name="elbow_pitch_joint" value="0.9"/>
+    <joint name="wrist_pitch_joint" value="-0.5"/>
+    <joint name="wrist_roll_joint" value="0"/>
+  </group_state>
+
+  <group_state name="open" group="gripper">
+    <joint name="gripper_joint" value="0.0225"/>
+  </group_state>
+
+  <group_state name="closed" group="gripper">
+    <joint name="gripper_joint" value="0.0"/>
+  </group_state>
+
+  <end_effector name="claw" parent_link="tool0" group="gripper" parent_group="arm"/>
+
+  <!-- The arm is bolted to the table. -->
+  <virtual_joint name="virtual_joint" type="fixed" parent_frame="world" child_link="base_link"/>
+
+  <!-- The mirrored finger is driven mechanically, not by a motor. -->
+  <passive_joint name="gripper_mirror_joint"/>
+
+  <!-- Pairs that are adjacent or mechanically can never touch:
+       skipping them makes collision checking faster and avoids
+       false positives where parts legitimately touch. -->
+  <disable_collisions link1="base_link" link2="shoulder_mount" reason="Adjacent"/>
+  <disable_collisions link1="shoulder_mount" link2="upper_arm" reason="Adjacent"/>
+  <disable_collisions link1="upper_arm" link2="forearm" reason="Adjacent"/>
+  <disable_collisions link1="forearm" link2="wrist" reason="Adjacent"/>
+  <disable_collisions link1="wrist" link2="roll_flange" reason="Adjacent"/>
+  <disable_collisions link1="roll_flange" link2="gripper_base" reason="Adjacent"/>
+  <disable_collisions link1="gripper_base" link2="finger_left" reason="Adjacent"/>
+  <disable_collisions link1="gripper_base" link2="finger_right" reason="Adjacent"/>
+  <disable_collisions link1="finger_left" link2="finger_right" reason="Never"/>
+  <disable_collisions link1="wrist" link2="gripper_base" reason="Never"/>
+  <disable_collisions link1="wrist" link2="finger_left" reason="Never"/>
+  <disable_collisions link1="wrist" link2="finger_right" reason="Never"/>
+  <disable_collisions link1="roll_flange" link2="finger_left" reason="Never"/>
+  <disable_collisions link1="roll_flange" link2="finger_right" reason="Never"/>
+  <disable_collisions link1="base_link" link2="upper_arm" reason="Never"/>
+  <disable_collisions link1="shoulder_mount" link2="forearm" reason="Never"/>
+
+</robot>

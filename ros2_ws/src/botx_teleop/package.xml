@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>botx_teleop</name>
+  <version>1.0.0</version>
+  <description>
+    Gamepad teleoperation for the botX arm (tested with a Fantech USB
+    controller). Converts sensor_msgs/Joy into control_msgs/JointJog
+    velocity commands consumed by botx_driver.
+  </description>
+  <maintainer email="shawonparvez@outlook.com">Monjurul Hasan Sohan</maintainer>
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>control_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>joy</depend>
+  <depend>python3-yaml</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

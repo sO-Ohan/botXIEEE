@@ -1,0 +1,231 @@
+<?xml version="1.0"?>
+<!--
+  botX  |  6-DOF aluminum robotic arm (generic ROT3U-style kit)
+
+  Kinematic chain (base -> tip):
+    base_yaw_joint       revolute  Z   (waist pan)
+    shoulder_pitch_joint revolute  Y
+    elbow_pitch_joint    revolute  Y
+    wrist_pitch_joint    revolute  Y
+    wrist_roll_joint     revolute  Z   (axial roll of the claw)
+    gripper_joint        prismatic Y   (parallel claw, mirrored finger mimics)
+
+  All link lengths are xacro properties below - measure your build
+  (axis-to-axis distances!) and adjust.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="botx_arm">
+
+  <!-- ================= dimensions (meters) - EDIT TO MATCH YOUR BUILD ================= -->
+  <xacro:property name="turntable_height"   value="0.032"/> <!-- base plate top -> yaw platform -->
+  <xacro:property name="shoulder_height"    value="0.040"/> <!-- yaw platform -> shoulder axis -->
+  <xacro:property name="upper_arm_length"   value="0.105"/> <!-- shoulder axis -> elbow axis -->
+  <xacro:property name="forearm_length"     value="0.098"/> <!-- elbow axis -> wrist pitch axis -->
+  <xacro:property name="wrist_length"       value="0.055"/> <!-- wrist pitch axis -> roll flange -->
+  <xacro:property name="gripper_base_length" value="0.030"/> <!-- roll flange -> gripper body -->
+  <xacro:property name="finger_length"      value="0.085"/> <!-- gripper body -> fingertip -->
+  <xacro:property name="finger_travel"      value="0.0225"/> <!-- per-finger slide; 55mm max opening -->
+
+  <xacro:property name="joint_effort"   value="1.0"/>   <!-- ~10 kg-cm MG996R -> ~1.0 Nm -->
+  <xacro:property name="joint_velocity" value="2.0"/>   <!-- rad/s, conservative for smooth demos -->
+
+  <!-- ================= materials ================= -->
+  <material name="aluminum_black">
+    <color rgba="0.15 0.15 0.17 1.0"/>
+  </material>
+  <material name="servo_blue">
+    <color rgba="0.10 0.25 0.60 1.0"/>
+  </material>
+  <material name="claw_dark">
+    <color rgba="0.25 0.25 0.28 1.0"/>
+  </material>
+
+  <!-- ================= helper macros ================= -->
+  <xacro:macro name="box_inertial" params="mass x y z">
+    <inertial>
+      <mass value="${mass}"/>
+      <inertia ixx="${mass*(y*y+z*z)/12.0}" iyy="${mass*(x*x+z*z)/12.0}"
+               izz="${mass*(x*x+y*y)/12.0}" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- an aluminum U-channel segment drawn as a box, origin at its bottom, extending +Z -->
+  <xacro:macro name="arm_segment" params="name length mass">
+    <link name="${name}">
+      <visual>
+        <origin xyz="0 0 ${length/2}"/>
+        <geometry><box size="0.020 0.038 ${length}"/></geometry>
+        <material name="aluminum_black"/>
+      </visual>
+      <!-- servo body at the joint end -->
+      <visual>
+        <origin xyz="0 0 0.010"/>
+        <geometry><box size="0.040 0.020 0.036"/></geometry>
+        <material name="servo_blue"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${length/2}"/>
+        <geometry><box size="0.045 0.045 ${length}"/></geometry>
+      </collision>
+      <xacro:box_inertial mass="${mass}" x="0.02" y="0.038" z="${length}"/>
+    </link>
+  </xacro:macro>
+
+  <!-- ================= world / base ================= -->
+  <link name="base_link">
+    <visual> <!-- base plate (U-beam base) -->
+      <origin xyz="0 0 0.0015"/>
+      <geometry><box size="0.120 0.100 0.003"/></geometry>
+      <material name="aluminum_black"/>
+    </visual>
+    <visual> <!-- turntable / waist servo housing -->
+      <origin xyz="0 0 ${turntable_height/2}"/>
+      <geometry><cylinder radius="0.030" length="${turntable_height}"/></geometry>
+      <material name="servo_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${turntable_height/2}"/>
+      <geometry><box size="0.120 0.100 ${turntable_height}"/></geometry>
+    </collision>
+    <xacro:box_inertial mass="0.25" x="0.12" y="0.10" z="${turntable_height}"/>
+  </link>
+
+  <!-- ================= J1: base yaw (waist) - PCA9685 channel 0 ================= -->
+  <joint name="base_yaw_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="shoulder_mount"/>
+    <origin xyz="0 0 ${turntable_height}"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="${-pi/2}" upper="${pi/2}" effort="${joint_effort}" velocity="${joint_velocity}"/>
+  </joint>
+
+  <link name="shoulder_mount"> <!-- rotating platform + shoulder U-bracket -->
+    <visual>
+      <origin xyz="0 0 ${shoulder_height/2}"/>
+      <geometry><box size="0.055 0.055 ${shoulder_height}"/></geometry>
+      <material name="aluminum_black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${shoulder_height/2}"/>
+      <geometry><box size="0.055 0.055 ${shoulder_height}"/></geometry>
+    </collision>
+    <xacro:box_inertial mass="0.10" x="0.055" y="0.055" z="${shoulder_height}"/>
+  </link>
+
+  <!-- ================= J2: shoulder pitch - channel 1 ================= -->
+  <joint name="shoulder_pitch_joint" type="revolute">
+    <parent link="shoulder_mount"/>
+    <child link="upper_arm"/>
+    <origin xyz="0 0 ${shoulder_height}"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="${-pi/2}" upper="${pi/2}" effort="${joint_effort}" velocity="${joint_velocity}"/>
+  </joint>
+  <xacro:arm_segment name="upper_arm" length="${upper_arm_length}" mass="0.12"/>
+
+  <!-- ================= J3: elbow pitch - channel 2 ================= -->
+  <joint name="elbow_pitch_joint" type="revolute">
+    <parent link="upper_arm"/>
+    <child link="forearm"/>
+    <origin xyz="0 0 ${upper_arm_length}"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="${-pi/2}" upper="${pi/2}" effort="${joint_effort}" velocity="${joint_velocity}"/>
+  </joint>
+  <xacro:arm_segment name="forearm" length="${forearm_length}" mass="0.10"/>
+
+  <!-- ================= J4: wrist pitch - channel 3 ================= -->
+  <joint name="wrist_pitch_joint" type="revolute">
+    <parent link="forearm"/>
+    <child link="wrist"/>
+    <origin xyz="0 0 ${forearm_length}"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="${-pi/2}" upper="${pi/2}" effort="${joint_effort}" velocity="${joint_velocity}"/>
+  </joint>
+  <xacro:arm_segment name="wrist" length="${wrist_length}" mass="0.08"/>
+
+  <!-- ================= J5: wrist roll - channel 4 ================= -->
+  <joint name="wrist_roll_joint" type="revolute">
+    <parent link="wrist"/>
+    <child link="roll_flange"/>
+    <origin xyz="0 0 ${wrist_length}"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="${-pi/2}" upper="${pi/2}" effort="${joint_effort}" velocity="${joint_velocity}"/>
+  </joint>
+
+  <link name="roll_flange">
+    <visual>
+      <origin xyz="0 0 ${gripper_base_length/2}"/>
+      <geometry><cylinder radius="0.016" length="${gripper_base_length}"/></geometry>
+      <material name="servo_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${gripper_base_length/2}"/>
+      <geometry><cylinder radius="0.020" length="${gripper_base_length}"/></geometry>
+    </collision>
+    <xacro:box_inertial mass="0.06" x="0.032" y="0.032" z="${gripper_base_length}"/>
+  </link>
+
+  <!-- ================= gripper body (fixed) ================= -->
+  <joint name="gripper_base_joint" type="fixed">
+    <parent link="roll_flange"/>
+    <child link="gripper_base"/>
+    <origin xyz="0 0 ${gripper_base_length}"/>
+  </joint>
+
+  <link name="gripper_base">
+    <visual>
+      <origin xyz="0 0 0.010"/>
+      <geometry><box size="0.045 0.060 0.020"/></geometry>
+      <material name="claw_dark"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.010"/>
+      <geometry><box size="0.045 0.060 0.020"/></geometry>
+    </collision>
+    <xacro:box_inertial mass="0.08" x="0.045" y="0.06" z="0.02"/>
+  </link>
+
+  <!-- ================= J6: gripper (parallel claw) - channel 5 =================
+       One actuated prismatic joint; the second finger mirrors it via <mimic>.
+       value 0 = closed, ${finger_travel} = fully open (~55 mm between tips). -->
+  <xacro:macro name="finger" params="name reflect">
+    <link name="${name}">
+      <visual>
+        <origin xyz="0 ${reflect*0.004} ${finger_length/2}"/>
+        <geometry><box size="0.020 0.008 ${finger_length}"/></geometry>
+        <material name="claw_dark"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${reflect*0.004} ${finger_length/2}"/>
+        <geometry><box size="0.020 0.008 ${finger_length}"/></geometry>
+      </collision>
+      <xacro:box_inertial mass="0.02" x="0.02" y="0.008" z="${finger_length}"/>
+    </link>
+  </xacro:macro>
+  <xacro:finger name="finger_left" reflect="1"/>
+  <xacro:finger name="finger_right" reflect="-1"/>
+
+  <joint name="gripper_joint" type="prismatic">
+    <parent link="gripper_base"/>
+    <child link="finger_left"/>
+    <origin xyz="0 0.005 0.020"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0" upper="${finger_travel}" effort="${joint_effort}" velocity="0.05"/>
+  </joint>
+
+  <joint name="gripper_mirror_joint" type="prismatic">
+    <parent link="gripper_base"/>
+    <child link="finger_right"/>
+    <origin xyz="0 -0.005 0.020"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="0" upper="${finger_travel}" effort="${joint_effort}" velocity="0.05"/>
+    <mimic joint="gripper_joint" multiplier="1.0" offset="0.0"/>
+  </joint>
+
+  <!-- ================= tool frame (TCP between the fingertips) ================= -->
+  <joint name="tool0_joint" type="fixed">
+    <parent link="gripper_base"/>
+    <child link="tool0"/>
+    <origin xyz="0 0 ${0.020 + finger_length - 0.010}"/>
+  </joint>
+  <link name="tool0"/>
+
+</robot>
