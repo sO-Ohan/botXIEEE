@@ -38,7 +38,15 @@ ros2 run botx_tui arm_tui
 | `o` / `c` | gripper open / close |
 | `h` | smooth-return to home pose (calls `/go_home`) |
 | `space` | stop |
-| `q` / `Esc` | quit |
+| `s` | start `botx_driver` from inside the TUI (when it shows OFFLINE) |
+| `q` / `Esc` | quit (also stops a driver started with `s`) |
+
+If the header says `○ DRIVER OFFLINE`, nothing is publishing
+`/joint_states` — you haven't started the driver. Either press `s` (the
+TUI spawns `trajectory_server` itself, logging to
+`/tmp/botx_driver_tui.log`) or run `demo.launch.py`/`driver.launch.py`
+in another terminal. Don't do both: two drivers would fight over the
+serial port and the controller action names.
 
 ## How it works (one more architecture lesson)
 

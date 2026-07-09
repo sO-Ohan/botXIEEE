@@ -13,10 +13,12 @@ Keys
     left/right, a/d  move selected joint   o / c .... gripper open/close
     +/- ............ step size             h ........ home pose
     space .......... stop (zero jog)       q ........ quit
+    s .............. start botx_driver from here (if it isn't running)
 """
 import curses
 import locale
 import math
+import subprocess
 import threading
 import time
 
@@ -39,6 +41,7 @@ STEPS_RAD = [0.005, 0.02, 0.05]        # selectable step sizes (rad/keypress)
 GRIP_STEP_FACTOR = 0.04                # gripper meters per rad of step
 BAR_W = 26
 LOGO = " botX  ARM  CONTROL "
+DRIVER_LOG = "/tmp/botx_driver_tui.log"
 
 
 class TuiNode(Node):
@@ -110,6 +113,10 @@ def draw(scr, node, sel, step_i, flash):
     put(1, 22, f"step: {step_deg:.1f}°/press   [+/-] change", dim)
     if flash:
         put(1, w - len(flash) - 2, flash, curses.color_pair(2) | bold)
+    if not online:
+        put(2, 2, "no /joint_states - press [s] to start the driver here, "
+                  "or launch demo.launch.py / driver.launch.py",
+            curses.color_pair(3))
 
     # ---- joint gauges ----
     for i, (name, label, lo, hi, unit) in enumerate(JOINTS):
@@ -161,6 +168,7 @@ def run(scr, node):
 
     sel, step_i = 0, 1
     flash, flash_until = "", 0.0
+    driver_proc = None
 
     while True:
         name, _, _, _, unit = JOINTS[sel]
@@ -171,7 +179,19 @@ def run(scr, node):
         key = scr.getch()
         if key in (ord("q"), 27):                      # q / Esc
             node.stop()
+            if driver_proc is not None and driver_proc.poll() is None:
+                driver_proc.terminate()
             return
+        elif key == ord("s") and not node.driver_online:
+            # convenience: spawn the driver right here, logs to a file so
+            # they don't trample the curses screen
+            if driver_proc is None or driver_proc.poll() is not None:
+                log = open(DRIVER_LOG, "w")
+                driver_proc = subprocess.Popen(
+                    ["ros2", "run", "botx_driver", "trajectory_server"],
+                    stdout=log, stderr=subprocess.STDOUT)
+                flash = f"driver started (log: {DRIVER_LOG})"
+                flash_until = time.monotonic() + 3.0
         elif key in (curses.KEY_UP, ord("k")):
             sel = (sel - 1) % len(JOINTS)
         elif key in (curses.KEY_DOWN, ord("j")):
