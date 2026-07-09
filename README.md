@@ -78,3 +78,11 @@ distrobox rm ros2-humble
 - Ubuntu 24.04 / 24.10 / 25.x / 26.x host (x86_64 or arm64)
 - `sudo` access to install host packages
 - Internet connection
+
+## Documentation
+
+Detailed docs live in [`docs/`](docs/):
+
+- [Overview](docs/OVERVIEW.md) — how it works and why Humble + Distrobox
+- [Usage guide](docs/USAGE.md) — install, options, verification, lifecycle
+- [Troubleshooting](docs/TROUBLESHOOTING.md) — fixes for common issues
