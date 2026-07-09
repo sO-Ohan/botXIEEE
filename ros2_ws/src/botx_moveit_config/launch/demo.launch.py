@@ -78,6 +78,10 @@ def generate_launch_description():
             package="rviz2",
             executable="rviz2",
             condition=IfCondition(LaunchConfiguration("use_rviz")),
+            # On Wayland sessions RViz's Qt window opens but the Ogre/GLX 3D
+            # viewport fails ("Invalid parentWindowHandle"); forcing the X11
+            # Qt platform (XWayland) fixes it and is harmless on plain X11.
+            additional_env={"QT_QPA_PLATFORM": "xcb"},
             arguments=["-d", rviz_config],
             parameters=[
                 moveit_config.robot_description,

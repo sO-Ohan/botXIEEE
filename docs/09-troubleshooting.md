@@ -57,6 +57,28 @@ of your session.
   `botx_teleop/config/fantech.yaml` (ch. 7).
 - Nothing moves → is `joy_node` publishing? `ros2 topic hz /joy`.
 
+## RViz opens but shows no 3D view / no robot (Wayland)
+
+On a Wayland desktop (KDE/GNOME on CachyOS/Arch), RViz's Qt window opens
+— panels, MotionPlanning controls — but the central 3D viewport fails to
+create. The terminal shows repeated:
+
+```
+RenderingAPIException: Invalid parentWindowHandle (wrong server or screen)
+in GLXWindow::create
+```
+
+Cause: Qt picks the native Wayland backend while RViz's Ogre renderer
+needs an X11 (GLX) window. Fix: run RViz under XWayland:
+
+```bash
+QT_QPA_PLATFORM=xcb rviz2
+```
+
+Both launch files in this repo already set this for their RViz nodes, so
+`display.launch.py` and `demo.launch.py` are immune. If you ever launch
+`rviz2` by hand, prefix it as above (or export it in your shell).
+
 ## Distrobox
 
 - GUI apps (RViz) need the host X/Wayland socket — distrobox forwards it
