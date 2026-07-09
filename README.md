@@ -64,6 +64,9 @@ Flash the firmware once (from the host, ESP32 on USB):
 cd firmware && pio run -t upload
 ```
 
+**In a hurry?** → [docs/COMMANDS.md](docs/COMMANDS.md) has every command
+from zero (distrobox + ROS install + clone) to a moving arm, in order.
+
 ## The class
 
 1. [What is a robotic arm? What is a DOF?](docs/01-robot-arms-and-dof.md)
